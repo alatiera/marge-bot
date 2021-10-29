@@ -176,6 +176,11 @@ def _parse_config(args):  # pylint: disable=too-many-statements
         help="Only process projects that match; e.g. 'some_group/.*' or '(?!exclude/me)'.\n",
     )
     parser.add_argument(
+        '--concurrent-projects',
+        action='store_true',
+        help=".....\n",
+    )
+    parser.add_argument(
         '--ci-timeout',
         type=time_interval,
         default='15min',
@@ -331,6 +336,7 @@ def main(args=None):
             auth_token=auth_token,
             ssh_key_file=ssh_key_file,
             project_regexp=options.project_regexp,
+            concurrent_projects=options.concurrent_projects,
             git_timeout=options.git_timeout,
             git_reference_repo=options.git_reference_repo,
             branch_regexp=options.branch_regexp,
