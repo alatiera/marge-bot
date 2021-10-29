@@ -6,6 +6,7 @@ import logging as log
 import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
 
+from collections import namedtuple
 import requests
 
 from . import git, gitlab, interval
