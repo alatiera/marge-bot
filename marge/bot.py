@@ -62,16 +62,22 @@ class Bot:
 
     def _run(self, repo_manager):
         time_to_sleep_between_projects_in_secs = (
-            1 if not self._config.concurrent_projects else 30
+            1 if not self._config.concurrent_projects else 15
         )
         min_time_to_sleep_after_iterating_all_projects_in_secs = (
-            30 if not self._config.concurrent_projects else 300
+            30 if not self._config.concurrent_projects else 60
         )
 
         project_threads = {}
 
         while True:
             projects = self._get_projects()
+
+            # Purge dead threads so they can restart
+            project_threads = dict(filter(lambda thread: thread[1].is_alive(), project_threads.items()))
+            # Quit threads for removed projects
+            # ... no built in thread quiting, assume these will exit naturally
+
             for project in projects:
                 if self._config.concurrent_projects:
                     if project.path_with_namespace not in project_threads:
@@ -92,6 +98,9 @@ class Bot:
 
             if self._config.cli:
                 return
+
+            if self._config.concurrent_projects:
+                log.info('Watching %s repos of %s projects', len(project_threads), len(projects))
 
             times_slept = len(projects) if not self._config.concurrent_projects else 0
             already_slept = time_to_sleep_between_projects_in_secs * times_slept
@@ -123,17 +132,21 @@ class Bot:
         project,
         forever
     ):
-        while True:
-            project_name = project.path_with_namespace
+        try:
+            while True:
+                project_name = project.path_with_namespace
 
-            if project.access_level < AccessLevel.reporter:
-                log.warning("Don't have enough permissions to browse merge requests in %s!", project_name)
-                continue
-            merge_requests = self._get_merge_requests(project, project_name)
-            self._process_merge_requests(repo_manager, project, merge_requests)
-            time.sleep(time_to_sleep_between_projects_in_secs)
-            if not forever:
-                return
+                if project.access_level < AccessLevel.reporter:
+                    log.warning("Don't have enough permissions to browse merge requests in %s!", project_name)
+                    continue
+                merge_requests = self._get_merge_requests(project, project_name)
+                self._process_merge_requests(repo_manager, project, merge_requests)
+                time.sleep(time_to_sleep_between_projects_in_secs)
+                if not forever:
+                    return
+        except Exception:
+            log.exception("Project error (%s)!", project_name)
+            raise
 
     def _get_merge_requests(self, project, project_name):
         log.info('Fetching merge requests assigned to me in %s...', project_name)
