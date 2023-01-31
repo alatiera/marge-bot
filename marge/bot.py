@@ -62,10 +62,10 @@ class Bot:
 
     def _run(self, repo_manager):
         time_to_sleep_between_projects_in_secs = (
-            1 if not self._config.concurrent_projects else 15
+            1 if not self._config.concurrent_projects else 30
         )
         min_time_to_sleep_after_iterating_all_projects_in_secs = (
-            30 if not self._config.concurrent_projects else 60
+            30 if not self._config.concurrent_projects else 300
         )
 
         project_threads = {}
