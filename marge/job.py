@@ -201,7 +201,7 @@ class MergeJob:
         if TYPE_CHECKING:
             assert self._options.ci_timeout is not None
         consecutive_errors = 0
-        while datetime.datetime.utcnow() - time_0 < self._options.ci_timeout:
+        while True:
             try:
                 ci_status, pipeline_msg = self.get_mr_ci_status(
                     merge_request, commit_sha=commit_sha
@@ -231,11 +231,19 @@ class MergeJob:
             if ci_status not in ("created", "pending", "running"):
                 log.warning("Suspicious CI status: %r. %s", ci_status, pipeline_msg)
 
-            log.debug(
-                "Waiting for %s secs before polling CI status again",
-                waiting_time_in_secs,
+            # Do we have enough time left to wait for another loop?
+            time_after_wait = datetime.datetime.utcnow() + datetime.timedelta(
+                seconds=waiting_time_in_secs
             )
-            time.sleep(waiting_time_in_secs)
+            if time_after_wait - time_0 < self._options.ci_timeout:
+                log.debug(
+                    "Waiting for %s secs before polling CI status again",
+                    waiting_time_in_secs,
+                )
+                time.sleep(waiting_time_in_secs)
+                continue
+
+            break
 
         raise CannotMerge(f"CI is taking too long. {pipeline_msg}")
 
