@@ -2,7 +2,7 @@ import logging as log
 import time
 from typing import List, Optional
 
-from . import git, gitlab, job
+from . import branch, git, gitlab, job
 from . import project as mb_project
 from . import user as mb_user
 from .commit import Commit
@@ -236,6 +236,13 @@ class BatchMergeJob(job.MergeJob):
         )
         for pipeline in pipelines:
             pipeline.cancel()
+
+        if merge_request.force_remove_source_branch:
+            branch.Branch.delete_by_name(
+                project_id=merge_request.source_project_id,
+                branch=merge_request.source_branch,
+                api=self._api,
+            )
 
         return final_sha
 
