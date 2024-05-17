@@ -10,6 +10,7 @@ from .approvals import Approvals
 
 NO_JOBS_MESSAGE = "No stages / jobs for this pipeline."
 RULES_PREVENT_JOBS_MESSAGE = (
+    "Pipeline will not run for the selected trigger. "
     "The rules configuration prevented any jobs from being added to the pipeline."
 )
 
