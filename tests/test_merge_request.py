@@ -358,6 +358,30 @@ class TestMergeRequest:
 
         assert result == expected_result
 
+    def test_trigger_pipeline_rules_fallback_nested_succeeds(self):
+        api = self.api
+        expected_result = object()
+
+        def side_effect(request):
+            if request.endpoint == "/projects/1234/merge_requests/54/pipelines":
+                raise BadRequest(
+                    400, {"message": {"base": [RULES_PREVENT_JOBS_MESSAGE]}}
+                )
+            if request.endpoint == "/projects/1234/pipeline?ref=useless_new_feature":
+                return expected_result
+            return None
+
+        api.call = Mock(side_effect=side_effect)
+
+        result = self.merge_request.trigger_pipeline()
+
+        assert api.call.call_args_list == [
+            call(POST("/projects/1234/merge_requests/54/pipelines")),
+            call(POST("/projects/1234/pipeline?ref=useless_new_feature")),
+        ]
+
+        assert result == expected_result
+
     def test_trigger_pipeline_fallback_fails(self):
         api = self.api
 
