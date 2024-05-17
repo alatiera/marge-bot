@@ -203,7 +203,7 @@ was made an admin, use the **PRIVATE TOKEN** found in marge-bot's `Profile
 Settings`; otherwise just use a personal token (you will need to impersonate the
 marge-bot user via the admin UI to get the private token, it should then be at
 `http://my-gitlab.example.com/profile/personal_access_tokens` reachable via
-`Profile Settings -> Acess Tokens`).
+`Profile Settings -> Access Tokens`).
 
 Once you have the token, put it in a file, e.g. `marge-bot.token`.
 
