@@ -4,12 +4,12 @@ import datetime
 import enum
 import logging as log
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, cast
 
 import requests
 
 from . import git, gitlab, interval
-from .approvals import Approvals
+from .approvals import Approvals, CustomApprovals
 from .branch import Branch
 from .interval import IntervalUnion
 from .merge_request import MergeRequest, MergeRequestRebaseFailed
@@ -34,6 +34,24 @@ class MergeJob:
         self._repo = repo
         self._options = options
         self._merge_timeout = datetime.timedelta(minutes=5)
+
+        # Normally we trust GitLab to tell us if approval criteria are met
+        self.approvals_factory: Callable[
+            [gitlab.Api, Dict[str, Any]], Approvals
+        ] = Approvals
+        custom_allowed = options.custom_allowed_approvers
+        if (
+            custom_allowed is not None
+            and custom_allowed
+            and options.custom_required_approvals
+        ):
+            # But sometimes we provide this logic instead
+            self.approvals_factory = lambda api, info: CustomApprovals(
+                api,
+                info,
+                allowed_approvers=cast(List[str], custom_allowed),
+                approvals_required=options.custom_required_approvals,
+            )
 
     @property
     def repo(self) -> git.Repo:
@@ -63,7 +81,7 @@ class MergeJob:
                 "Sorry, merging requests marked as auto-squash would ruin my commit tagging!"
             )
 
-        approvals = merge_request.fetch_approvals()
+        approvals = merge_request.fetch_approvals(self.approvals_factory)
         if not approvals.sufficient:
             raise CannotMerge(
                 "Insufficient approvals "
@@ -98,7 +116,7 @@ class MergeJob:
         reviewers = (
             _get_reviewer_names_and_emails(
                 merge_request.fetch_commits(),
-                merge_request.fetch_approvals(),
+                merge_request.fetch_approvals(self.approvals_factory),
                 self._api,
             )
             if should_add_reviewers
@@ -311,7 +329,7 @@ class MergeJob:
             # are no approvals, otherwise we'll get a failure on trying to
             # re-instate the previous approvals
             def sufficient_approvals() -> bool:
-                return merge_request.fetch_approvals().sufficient
+                return merge_request.fetch_approvals(self.approvals_factory).sufficient
 
             # Make sure we don't race by ensuring approvals have reset since the push
             waiting_time_in_secs = 5
@@ -567,6 +585,8 @@ class MergeJobOptions:
     use_merge_commit_batches: bool = False
     skip_ci_batches: bool = False
     guarantee_final_pipeline: bool = False
+    custom_allowed_approvers: Optional[List[str]] = None
+    custom_required_approvals: int = 0
 
     def __post_init__(self) -> None:
         # Set any fields with None values to the result of its default_factory

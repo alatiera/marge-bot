@@ -2,7 +2,7 @@ import datetime
 import logging as log
 import sys
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 from . import gitlab
 from . import user as mb_user
@@ -362,10 +362,12 @@ class MergeRequest(gitlab.Resource):
     def unassign(self) -> Dict[str, Any]:
         return self.assign_to(0)
 
-    def fetch_approvals(self) -> Approvals:
+    def fetch_approvals(
+        self, approvals_factory: Callable[[gitlab.Api, Dict[str, Any]], Approvals]
+    ) -> Approvals:
         # 'id' needed for for GitLab 9.2.2 hack (see Approvals.refetch_info())
         info = {"id": self.id, "iid": self.iid, "project_id": self.project_id}
-        approvals = Approvals(self.api, info)
+        approvals = approvals_factory(self.api, info)
         approvals.refetch_info()
         return approvals
 

@@ -163,7 +163,7 @@ class BatchMergeJob(job.MergeJob):
         source_repo_url: Optional[str] = None,
     ) -> str:
         log.info("Fusing MR !%s", merge_request.iid)
-        approvals = merge_request.fetch_approvals()
+        approvals = merge_request.fetch_approvals(self.approvals_factory)
 
         _, _, actual_sha = self.update_from_target_branch_and_push(
             merge_request,
@@ -381,8 +381,10 @@ class BatchMergeJob(job.MergeJob):
         # Accept the batch MR
         if self._options.use_merge_commit_batches:
             # Approve the batch MR using the last sub MR's approvers
-            if not batch_mr.fetch_approvals().sufficient:
-                approvals = working_merge_requests[-1].fetch_approvals()
+            if not batch_mr.fetch_approvals(self.approvals_factory).sufficient:
+                approvals = working_merge_requests[-1].fetch_approvals(
+                    self.approvals_factory
+                )
                 try:
                     approvals.approve(batch_mr)
                 except (gitlab.Forbidden, gitlab.Unauthorized):

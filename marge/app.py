@@ -264,6 +264,25 @@ def _parse_config(
         default=None,
         help="Provide additional text, like a log URL, to append to some exception-related MR comments.\n",
     )
+    parser.add_argument(
+        "--custom-approver",
+        type=str,
+        default=None,
+        nargs="*",
+        help=(
+            "Specify one or more approver usernames to accept instead of asking GitLab.\n"
+            "For CE approval use.\n"
+        ),
+    )
+    parser.add_argument(
+        "--custom-approvals-required",
+        type=int,
+        default=0,
+        help=(
+            "Required number of approvals from --custom-approval.\n"
+            "For CE approval use.\n"
+        ),
+    )
 
     config = cast(argparse.Namespace, parser.parse_args(args))
 
@@ -387,6 +406,8 @@ def main(args: Optional[List[str]] = None) -> int:
                 use_merge_commit_batches=options.use_merge_commit_batches,
                 skip_ci_batches=options.skip_ci_batches,
                 guarantee_final_pipeline=options.guarantee_final_pipeline,
+                custom_allowed_approvers=options.custom_approver,
+                custom_required_approvals=options.custom_approvals_required,
             ),
             batch=options.batch,
             batch_branch_name=options.batch_branch_name,

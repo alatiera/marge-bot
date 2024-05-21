@@ -224,6 +224,8 @@ class TestMergeJobOptions:
             use_merge_commit_batches=False,
             skip_ci_batches=False,
             guarantee_final_pipeline=False,
+            custom_allowed_approvers=None,
+            custom_required_approvals=0,
         )
 
     def test_default_ci_time(self):

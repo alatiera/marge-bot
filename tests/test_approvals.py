@@ -3,7 +3,7 @@ from unittest.mock import Mock, call, patch
 import pytest
 
 import marge.user
-from marge.approvals import Approvals
+from marge.approvals import Approvals, CustomApprovals
 from marge.gitlab import GET, POST, Api, Version
 
 # testing this here is more convenient
@@ -78,7 +78,7 @@ class TestApprovals:
         api.call = Mock(return_value=INFO)
 
         merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
-        approvals = merge_request.fetch_approvals()
+        approvals = merge_request.fetch_approvals(Approvals)
 
         api.call.assert_called_once_with(
             GET("/projects/1234/merge_requests/6/approvals")
@@ -91,7 +91,7 @@ class TestApprovals:
         api.call = Mock(return_value=INFO)
 
         merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
-        approvals = merge_request.fetch_approvals()
+        approvals = merge_request.fetch_approvals(Approvals)
 
         api.call.assert_called_once_with(
             GET("/projects/1234/merge_requests/6/approvals")
@@ -104,7 +104,7 @@ class TestApprovals:
         api.call = Mock()
 
         merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
-        approvals = merge_request.fetch_approvals()
+        approvals = merge_request.fetch_approvals(Approvals)
 
         api.call.assert_not_called()
         assert approvals.info == {
@@ -126,6 +126,46 @@ class TestApprovals:
             api=self.api, info=dict(INFO, approvals_required=1, approvals_left=0)
         )
         assert good_approvals.sufficient
+
+    def test_custom_insufficient(self):
+        api = self.api
+        api.call = Mock(return_value=INFO)
+
+        merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
+
+        def make_custom_approvals(api, info):
+            # Only require 2 approvers from the list, not actually achievable
+            return CustomApprovals(api, info, ["root"], 2)
+
+        approvals = merge_request.fetch_approvals(make_custom_approvals)
+
+        api.call.assert_called_once_with(
+            GET("/projects/1234/merge_requests/6/approvals")
+        )
+
+        assert approvals.info == INFO
+        assert approvals.approvals_left == 1
+        assert not approvals.sufficient
+
+    def test_custom_sufficient(self):
+        api = self.api
+        api.call = Mock(return_value=INFO)
+
+        merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
+
+        def make_custom_approvals(api, info):
+            # Only require 1 approver from the list
+            return CustomApprovals(api, info, ["root"], 1)
+
+        approvals = merge_request.fetch_approvals(make_custom_approvals)
+
+        api.call.assert_called_once_with(
+            GET("/projects/1234/merge_requests/6/approvals")
+        )
+
+        assert approvals.info == INFO
+        assert approvals.approvals_left == 0
+        assert approvals.sufficient
 
     def test_reapprove(self):
         self.approvals.reapprove()
