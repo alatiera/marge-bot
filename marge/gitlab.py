@@ -197,9 +197,18 @@ class ApiError(Exception):
         if len(args) != 2:
             return None
 
+        # Code is the first element
         arg = args[1]
+        # Might be as deep as {"message": {"base": ["real message"]}}
         if isinstance(arg, dict):
-            return arg.get("message")
+            arg = arg.get("message")
+
+        if isinstance(arg, dict) and "base" in arg:
+            arg = arg.get("base")
+
+        if isinstance(arg, list) and len(arg) == 1:
+            arg = arg[0]
+
         if TYPE_CHECKING:
             assert isinstance(arg, str)
         return arg
