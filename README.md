@@ -21,8 +21,7 @@ time this happens, enough changes may have occurred to induce test breakage, but
 this is only to be found out when the commits have already landed.
 
 GitLab (in their [enterprise edition](https://about.gitlab.com/products/)),
-offers an important improvement here with
-their
+offers an important improvement here with their
 [semi-linear history and fast-forward](https://docs.gitlab.com/ee/user/project/merge_requests/) merge
 request methods: in both cases a merge request can only be accepted if the
 resulting master branch will be effectively the same as the merge request branch
@@ -46,17 +45,16 @@ versions, so should not be a barrier.
 Since she is at it, she can optionally provide some other goodies like tagging
 of commits (e.g. `Reviewed-by: ...`) or preventing merges during certain hours.
 
-
 ## Configuring
 
 Args that start with '--' (eg. `--auth-token`) can also be set in a config file
 (specified via `--config-file`). The config file uses YAML syntax and must
 represent a YAML 'mapping' (for details, see
-http://learn.getgrav.org/advanced/yaml). If an arg is specified in more than one
+<http://learn.getgrav.org/advanced/yaml>). If an arg is specified in more than one
 place, then commandline values override environment variables which override
 config file values which override defaults.
 
-```bash
+```txt
 optional arguments:
   -h, --help            show this help message and exit
   --config-file CONFIG_FILE
@@ -148,7 +146,9 @@ optional arguments:
                         Provide additional text, like a log URL, to append to some exception-related MR comments.
                         [env var: MARGE_EXC_COMMENT] (default: None)
 ```
+
 Here is a config file example
+
 ```yaml
 add-part-of: true
 add-reviewers: true
@@ -170,8 +170,8 @@ ssh-key-file: token.FILE
 # OR use HTTPS instead of SSH
 #use-https: true
 ```
-For more information about configuring marge-bot see `--help`
 
+For more information about configuring marge-bot see `--help`
 
 ## Running
 
@@ -186,7 +186,7 @@ For certain features, namely, `--impersonate-approvers`, and `--add-reviewers`,
 you will need to grant `marge-bot` admin privileges as well. In the latter, so
 that she can query the email of the reviewers to include it in the commit. Note
 that if you're trying to run marge-bot against a GitLab instance you don't have
-yourself admin access to (e.g. https://www.gitlab.com), you won't be able to use
+yourself admin access to (e.g. <https://www.gitlab.com>), you won't be able to use
 features that require admin for marge-bot.
 
 Second, you need an authentication token for the `marge-bot` user. You will need
@@ -196,14 +196,14 @@ If marge-bot was made an admin to handle approver impersonation and/or adding a
 reviewed-by field, then you will also need to add **`sudo`** scope under
 `Impersonation Tokens` in the User Settings. Assuming your GitLab install is
 install is `https://your-gitlab.example.com` the link will be at
-`https://your-gitlab.example.com/admin/users/marge-bot/impersonation_tokens`).
+`https://your-gitlab.example.com/admin/users/marge-bot/impersonation_tokens`.
 
 On older GitLab installs, to be able to use impersonation features if marge-bot
 was made an admin, use the **PRIVATE TOKEN** found in marge-bot's `Profile
 Settings`; otherwise just use a personal token (you will need to impersonate the
 marge-bot user via the admin UI to get the private token, it should then be at
 `http://my-gitlab.example.com/profile/personal_access_tokens` reachable via
-`Profile Settings -> Acess Tokens`).
+`Profile Settings -> Access Tokens`).
 
 Once you have the token, put it in a file, e.g. `marge-bot.token`.
 
@@ -290,6 +290,7 @@ docker run --restart=on-failure \ # restart if marge crashes because GitLab is f
 HTTPS can be used using any other deployment technique as well.
 
 ### Running marge-bot in kubernetes
+
 It's also possible to run marge in kubernetes, e.g. here's how you use a ktmpl
 template:
 
@@ -308,6 +309,7 @@ Once running, the bot will continuously monitor all projects that have its user 
 will pick up any changes in membership at runtime.
 
 ### Running marge-bot in Swarm
+
 Or you can run marge in Docker Swarm, e.g. here's how you use a compose file:
 
 ```yaml
@@ -401,6 +403,7 @@ However, we suggest you use a systemd unit file or some other mechanism to
 automatically restart marge-bot in case of intermittent GitLab problems.
 
 ## Suggested workflow
+
 1. Alice creates a new merge request and assigns Bob and Charlie as reviewers
 
 2. Both review the code and after all issues they raise are resolved by Alice,
@@ -412,7 +415,6 @@ automatically restart marge-bot in case of intermittent GitLab problems.
    the project), Marge-bot will merge (or rebase, depending on project settings)
    the merge request via the GitLab API. It can also add some headers to all
    commits in the merge request as described in the next section.
-
 
 ## Adding Reviewed-by:, Tested: and Part-of: to commit messages
 
@@ -427,7 +429,7 @@ have enough approvers to meet the required approver count, Marge will add the
 following header to each commit message and each reviewer as it rebases the
 target branch into your PR branch:
 
-```
+```txt
 Reviewed-by: A. Reviewer <a.reviewer@example.com>
 ```
 
@@ -453,6 +455,7 @@ commits introduced by a single Merge Request when using a fast-forward/rebase
 based merge workflow.
 
 ## Impersonating approvers
+
 If you want a full audit trail, you will configure GitLab
 [require approvals](https://docs.gitlab.com/ee/user/project/merge_requests/merge_request_approvals.html#approvals-required)
 for PRs and also turn on
@@ -474,7 +477,6 @@ prevent shipping late on a Friday, but still want to allow marking merge request
 More than one embargo period can be specified, separated by commas. Any merge
 request assigned to her during an embargo period, will be merged in only once all
 embargoes are over.
-
 
 ## Batching Merge Requests
 
@@ -571,14 +573,17 @@ It is possible to restrict the source branches with `--source-branch-regexp`.
 ## Some handy git aliases
 
 Only `git bisect run` on commits that have passed CI (requires running marge-bot with `--add-tested`):
-```
+
+```sh
 git config --global alias.bisect-run-tested \
  'f() { git bisect run /bin/sh -c "if !(git log -1 --format %B | fgrep -q \"Tested-by: Marge Bot\"); then exit 125; else "$@"; fi"; }; f'
 ```
+
 E.g. `git bisect-run-tested ./test-for-some-bug.sh`.
 
 Revert a whole MR, in a rebase based workflow (requires running marge-bot with `--add-part-of`):
-```
+
+```sh
 git config --global alias.mr-revs '!f() { git log --grep "^Part-of.*/""$1"">" --pretty="%H"; }; f'
 git config --global alias.mr-url '!f() { git log -1 --grep "^Part-of.*/""$1"">" --pretty="%b" | grep "^Part-of.*/""$1"">"  | sed "s/.*<\\(.*\\)>/\\1/"; }; f'
 git config --global alias.revert-mr '!f() { REVS=$(git mr-revs "$1"); URL="$(git mr-url "$1")";  git revert --no-commit $REVS;  git commit -m "Revert <$URL>$(echo;echo; echo "$REVS" | xargs -I% echo "This reverts commit %.")"; }; f'
@@ -587,7 +592,7 @@ git config --global alias.revert-mr '!f() { REVS=$(git mr-revs "$1"); URL="$(git
 E.g. `git revert-mr 123`. This will create a single commit reverting all commits
 that are part of MR 123 with a commit message that looks like this:
 
-```
+```txt
 Revert <http://gitlab.example.com/mygropup/myproject/merge_requests/123>
 
 This reverts commit 86a3d35d9bc12e735efbf72f3e2fb895c0158713.
@@ -596,7 +601,6 @@ This reverts commit 0af5b70a98858c9509c895da2a673ebdb31e20b1.
 ```
 
 E.g. `git revert-mr 123`.
-
 
 ## Troubleshooting
 

@@ -7,7 +7,7 @@ def run() -> int:
     try:
         return main()
     except Exception as err:
-        print("Exception occured")
+        print("Exception occurred")
         if hasattr(err, "stdout"):
             # pylint: disable=no-member
             print(f"stdout was: {err.stdout}")

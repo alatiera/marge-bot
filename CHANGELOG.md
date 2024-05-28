@@ -72,7 +72,7 @@
   * 0.5.0:
     - Added "default -> config file -> env var -> args" way to configure marge-bot #71
   * 0.4.1:
-    - Fixed bug in error handling of commit rewritting (#70 / 1438867)
+    - Fixed bug in error handling of commit rewriting (#70 / 1438867)
     - Add --project-regexp argument to restrict to certain target branches $65.
     - Sleep less between merging requests while there are jobs pending #67.
     - Less verborragic logging when --debug is used #66.
