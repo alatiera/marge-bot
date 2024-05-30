@@ -54,11 +54,18 @@ represent a YAML 'mapping' (for details, see
 place, then commandline values override environment variables which override
 config file values which override defaults.
 
+<!--
+Editor note: To update the text below,
+copy and paste from the output of
+    poetry run marge.app --help
+-->
+
 ```txt
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --config-file CONFIG_FILE
-                        config file path   [env var: MARGE_CONFIG_FILE] (default: None)
+                        Config file path.
+                           [env var: MARGE_CONFIG_FILE] (default: None)
   --auth-token TOKEN    Your GitLab token.
                         DISABLED because passing credentials on the command line is insecure:
                         You can still set it via ENV variable or config file, or use "--auth-token-file" flag.
@@ -68,7 +75,7 @@ optional arguments:
                            [env var: MARGE_AUTH_TOKEN_FILE] (default: None)
   --gitlab-url URL      Your GitLab instance, e.g. "https://gitlab.example.com".
                            [env var: MARGE_GITLAB_URL] (default: None)
-  --use-https           use HTTP(S) instead of SSH for GIT repository access
+  --use-https           Use HTTP(S) instead of SSH for GIT repository access.
                            [env var: MARGE_USE_HTTPS] (default: False)
   --ssh-key KEY         The private ssh key for marge so it can clone/push.
                         DISABLED because passing credentials on the command line is insecure:
@@ -90,10 +97,13 @@ optional arguments:
                            [env var: MARGE_REBASE_REMOTELY] (default: False)
   --add-tested          Add "Tested: marge-bot <$MR_URL>" for the final commit on branch after it passed CI.
                            [env var: MARGE_ADD_TESTED] (default: False)
-  --batch               Enable processing MRs in batches
+  --batch               Enable processing MRs in batches.
                            [env var: MARGE_BATCH] (default: False)
   --add-part-of         Add "Part-of: <$MR_URL>" to each commit in MR.
                            [env var: MARGE_ADD_PART_OF] (default: False)
+  --batch-branch-name BATCH_BRANCH_NAME
+                        Branch name when batching is enabled.
+                           [env var: MARGE_BATCH_BRANCH_NAME] (default: marge_bot_batch_merge_job)
   --add-reviewers       Add "Reviewed-by: $approver" for each approver of MR to each commit in MR.
                            [env var: MARGE_ADD_REVIEWERS] (default: False)
   --impersonate-approvers
@@ -131,20 +141,22 @@ optional arguments:
                            [env var: MARGE_SOURCE_BRANCH_REGEXP] (default: .*)
   --debug               Debug logging (includes all HTTP requests etc).
                            [env var: MARGE_DEBUG] (default: False)
-  --cli                 Run marge-bot as a single CLI command, not as a long-running service.
-                        This may be used to run marge-bot in scheduled CI pipelines or cronjobs.
-                           [env var: MARGE_CLI] (default: False)
-  --use-no-ff-batches   Disable fast forwarding when merging MR batches   [env var: MARGE_USE_NO_FF_BATCHES] (default: False)
+  --use-no-ff-batches   Disable fast forwarding when merging MR batches.
+                           [env var: MARGE_USE_NO_FF_BATCHES] (default: False)
   --use-merge-commit-batches
-                        Use merge commit when creating batches, so that the commits in the batch MR will be the same with in individual MRs. Requires sudo scope in the access token.
+                        Use merge commit when creating batches, so that the commits in the batch MR
+                        will be the same with in individual MRs. Requires sudo scope in the access token.
                            [env var: MARGE_USE_MERGE_COMMIT_BATCHES] (default: False)
-  --skip-ci-batches     Skip CI when updating individual MRs when using batches   [env var: MARGE_SKIP_CI_BATCHES] (default: False)
+  --skip-ci-batches     Skip CI when updating individual MRs when using batches.
+                           [env var: MARGE_SKIP_CI_BATCHES] (default: False)
+  --cli                 Run marge-bot as a single CLI command, not a service.
+                           [env var: MARGE_CLI] (default: False)
   --guarantee-final-pipeline
-                        Guaranteed final pipeline when assigned to marge-bot
-                        [env var: MARGE_GUARANTEE_FINAL_PIPELINE] (default: False)
+                        Guaranteed final pipeline when assigned to marge-bot.
+                           [env var: MARGE_GUARANTEE_FINAL_PIPELINE] (default: False)
   --exc-comment EXC_COMMENT
                         Provide additional text, like a log URL, to append to some exception-related MR comments.
-                        [env var: MARGE_EXC_COMMENT] (default: None)
+                           [env var: MARGE_EXC_COMMENT] (default: None)
 ```
 
 Here is a config file example
