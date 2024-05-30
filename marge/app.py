@@ -53,12 +53,14 @@ def _parse_config(
         formatter_class=configargparse.ArgumentDefaultsRawHelpFormatter,
         description=__doc__,
     )
+
+    # NOTE: Use a "." and \n at the end of the help for each option.
     parser.add_argument(
         "--config-file",
         env_var="MARGE_CONFIG_FILE",
         type=str,
         is_config_file=True,
-        help="config file path",
+        help="Config file path.\n",
     )
     auth_token_group = parser.add_mutually_exclusive_group(required=True)
     auth_token_group.add_argument(
@@ -89,7 +91,7 @@ def _parse_config(
         "--use-https",
         env_var="MARGE_USE_HTTPS",
         action="store_true",
-        help="use HTTP(S) instead of SSH for GIT repository access\n",
+        help="Use HTTP(S) instead of SSH for GIT repository access.\n",
     )
     repo_access.add_argument(
         "--ssh-key",
@@ -141,7 +143,7 @@ def _parse_config(
     parser.add_argument(
         "--batch",
         action="store_true",
-        help="Enable processing MRs in batches\n",
+        help="Enable processing MRs in batches.\n",
     )
     parser.add_argument(
         "--add-part-of",
@@ -152,7 +154,7 @@ def _parse_config(
         "--batch-branch-name",
         type=str,
         default="marge_bot_batch_merge_job",
-        help="Branch name when batching is enabled\n",
+        help="Branch name when batching is enabled.\n",
     )
     parser.add_argument(
         "--add-reviewers",
@@ -231,34 +233,36 @@ def _parse_config(
     parser.add_argument(
         "--use-no-ff-batches",
         action="store_true",
-        help="Disable fast forwarding when merging MR batches",
+        help="Disable fast forwarding when merging MR batches.\n",
     )
     parser.add_argument(
         "--use-merge-commit-batches",
         action="store_true",
-        help="Use merge commit when creating batches, so that the commits in the batch MR "
-        "will be the same with in individual MRs. Requires sudo scope in the access token.\n",
+        help=(
+            "Use merge commit when creating batches, so that the commits in the batch MR\n"
+            "will be the same with in individual MRs. Requires sudo scope in the access token.\n"
+        ),
     )
     parser.add_argument(
         "--skip-ci-batches",
         action="store_true",
-        help="Skip CI when updating individual MRs when using batches",
+        help="Skip CI when updating individual MRs when using batches.\n",
     )
     parser.add_argument(
         "--cli",
         action="store_true",
-        help="Run marge-bot as a single CLI command, not a service",
+        help="Run marge-bot as a single CLI command, not a service.\n",
     )
     parser.add_argument(
         "--guarantee-final-pipeline",
         action="store_true",
-        help="Guaranteed final pipeline when assigned to marge-bot",
+        help="Guaranteed final pipeline when assigned to marge-bot.\n",
     )
     parser.add_argument(
         "--exc-comment",
         type=str,
         default=None,
-        help="Provide additional text, like a log URL, to append to some exception-related MR comments.",
+        help="Provide additional text, like a log URL, to append to some exception-related MR comments.\n",
     )
 
     config = cast(argparse.Namespace, parser.parse_args(args))
