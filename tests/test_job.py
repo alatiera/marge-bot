@@ -26,7 +26,7 @@ class TestJob:
             "user": create_autospec(marge.user.User, spec_set=True),
             "project": create_autospec(marge.project.Project, spec_set=True),
             "repo": create_autospec(marge.git.Repo, spec_set=True),
-            "options": MergeJobOptions.default(),
+            "options": MergeJobOptions(),
         }
         params.update(merge_kwargs)
         return MergeJob(**params)
@@ -151,9 +151,7 @@ class TestJob:
         )
 
     def test_ensure_mergeable_mr_squash_and_trailers(self):
-        merge_job = self.get_merge_job(
-            options=MergeJobOptions.default(add_reviewers=True)
-        )
+        merge_job = self.get_merge_job(options=MergeJobOptions(add_reviewers=True))
         merge_request = self._mock_merge_request(
             assignee_ids=[merge_job._user.id],
             state="opened",
@@ -183,9 +181,7 @@ class TestJob:
         merge_request.unassign.assert_called_once()
 
     def test_fuse_using_rebase(self):
-        merge_job = self.get_merge_job(
-            options=MergeJobOptions.default(fusion=Fusion.rebase)
-        )
+        merge_job = self.get_merge_job(options=MergeJobOptions(fusion=Fusion.rebase))
         branch_a = "A"
         branch_b = "B"
 
@@ -199,9 +195,7 @@ class TestJob:
         )
 
     def test_fuse_using_merge(self):
-        merge_job = self.get_merge_job(
-            options=MergeJobOptions.default(fusion=Fusion.merge)
-        )
+        merge_job = self.get_merge_job(options=MergeJobOptions(fusion=Fusion.merge))
         branch_a = "A"
         branch_b = "B"
 
@@ -217,7 +211,7 @@ class TestJob:
 
 class TestMergeJobOptions:
     def test_default(self):
-        assert MergeJobOptions.default() == MergeJobOptions(
+        assert MergeJobOptions() == MergeJobOptions(
             add_tested=False,
             add_part_of=False,
             add_reviewers=False,
@@ -234,6 +228,6 @@ class TestMergeJobOptions:
 
     def test_default_ci_time(self):
         three_min = timedelta(minutes=3)
-        assert MergeJobOptions.default(ci_timeout=three_min) == dataclasses.replace(
-            MergeJobOptions.default(), ci_timeout=three_min
+        assert MergeJobOptions(ci_timeout=three_min) == dataclasses.replace(
+            MergeJobOptions(), ci_timeout=three_min
         )

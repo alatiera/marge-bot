@@ -56,7 +56,7 @@ class TestBatchJob:
                 ),
                 spec_set=True,
             ),
-            "options": MergeJobOptions.default(),
+            "options": MergeJobOptions(),
             "merge_requests": [merge_request],
             "batch_branch_name": "test_branch_name",
         }

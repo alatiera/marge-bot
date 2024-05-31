@@ -549,57 +549,36 @@ class Fusion(enum.Enum):
 
 @dataclasses.dataclass
 class MergeJobOptions:
-    add_tested: bool
-    add_part_of: bool
-    add_reviewers: bool
-    reapprove: bool
-    approval_timeout: Optional[datetime.timedelta]
-    embargo: Optional[interval.IntervalUnion]
-    ci_timeout: Optional[datetime.timedelta]
-    fusion: Fusion
-    use_no_ff_batches: bool
-    use_merge_commit_batches: bool
-    skip_ci_batches: bool
-    guarantee_final_pipeline: bool
+    add_tested: bool = False
+    add_part_of: bool = False
+    add_reviewers: bool = False
+    reapprove: bool = False
+    approval_timeout: Optional[datetime.timedelta] = dataclasses.field(
+        default_factory=lambda: datetime.timedelta(seconds=0)
+    )
+    embargo: Optional[interval.IntervalUnion] = dataclasses.field(
+        default_factory=IntervalUnion.empty
+    )
+    ci_timeout: Optional[datetime.timedelta] = dataclasses.field(
+        default_factory=lambda: datetime.timedelta(minutes=15)
+    )
+    fusion: Fusion = Fusion.rebase
+    use_no_ff_batches: bool = False
+    use_merge_commit_batches: bool = False
+    skip_ci_batches: bool = False
+    guarantee_final_pipeline: bool = False
+
+    def __post_init__(self) -> None:
+        # Set any fields with None values to the result of its default_factory
+        # callable.
+        for field_ in dataclasses.fields(self):
+            if getattr(self, field_.name) is None:
+                if field_.default_factory != dataclasses.MISSING:
+                    setattr(self, field_.name, field_.default_factory())
 
     @property
     def requests_commit_tagging(self) -> bool:
         return self.add_tested or self.add_part_of or self.add_reviewers
-
-    @classmethod
-    def default(
-        cls,
-        *,
-        add_tested: bool = False,
-        add_part_of: bool = False,
-        add_reviewers: bool = False,
-        reapprove: bool = False,
-        approval_timeout: Optional[datetime.timedelta] = None,
-        embargo: Optional[interval.IntervalUnion] = None,
-        ci_timeout: Optional[datetime.timedelta] = None,
-        fusion: Fusion = Fusion.rebase,
-        use_no_ff_batches: bool = False,
-        use_merge_commit_batches: bool = False,
-        skip_ci_batches: bool = False,
-        guarantee_final_pipeline: bool = False,
-    ) -> "MergeJobOptions":
-        approval_timeout = approval_timeout or datetime.timedelta(seconds=0)
-        embargo = embargo or IntervalUnion.empty()
-        ci_timeout = ci_timeout or datetime.timedelta(minutes=15)
-        return cls(
-            add_tested=add_tested,
-            add_part_of=add_part_of,
-            add_reviewers=add_reviewers,
-            reapprove=reapprove,
-            approval_timeout=approval_timeout,
-            embargo=embargo,
-            ci_timeout=ci_timeout,
-            fusion=fusion,
-            use_no_ff_batches=use_no_ff_batches,
-            use_merge_commit_batches=use_merge_commit_batches,
-            skip_ci_batches=skip_ci_batches,
-            guarantee_final_pipeline=guarantee_final_pipeline,
-        )
 
 
 class CannotMerge(Exception):

@@ -101,7 +101,7 @@ def test_default_values():
             assert bot.user.info == user_info
             assert bot.config.project_regexp == re.compile(".*")
             assert bot.config.git_timeout == datetime.timedelta(seconds=120)
-            assert bot.config.merge_opts == job.MergeJobOptions.default()
+            assert bot.config.merge_opts == job.MergeJobOptions()
             assert bot.config.merge_order == "created_at"
 
 
@@ -112,7 +112,7 @@ def test_embargo():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main('--embargo="Fri 1pm-Mon 7am"') as bot:
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
+            assert bot.config.merge_opts == job.MergeJobOptions(
                 embargo=interval.IntervalUnion.from_human("Fri 1pm-Mon 7am"),
             )
 
@@ -124,8 +124,8 @@ def test_rebase_remotely():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--rebase-remotely") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(
                 fusion=job.Fusion.gitlab_rebase
             )
 
@@ -137,10 +137,8 @@ def test_use_merge_strategy():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--use-merge-strategy") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
-                fusion=job.Fusion.merge
-            )
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(fusion=job.Fusion.merge)
 
 
 def test_add_tested():
@@ -150,8 +148,8 @@ def test_add_tested():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--add-tested") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(add_tested=True)
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(add_tested=True)
 
 
 def test_use_merge_strategy_and_add_tested_are_mutualy_exclusive():
@@ -172,10 +170,8 @@ def test_add_part_of():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--add-part-of") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
-                add_part_of=True
-            )
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(add_part_of=True)
 
 
 def test_add_reviewers():
@@ -194,10 +190,8 @@ def test_add_reviewers():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--add-reviewers") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
-                add_reviewers=True
-            )
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(add_reviewers=True)
 
 
 def test_rebase_remotely_option_conflicts():
@@ -233,8 +227,8 @@ def test_impersonate_approvers():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--impersonate-approvers") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(reapprove=True)
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(reapprove=True)
 
 
 def test_approval_reset_timeout():
@@ -244,8 +238,8 @@ def test_approval_reset_timeout():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--approval-reset-timeout 1m") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(
                 approval_timeout=datetime.timedelta(seconds=60),
             )
 
@@ -267,8 +261,8 @@ def test_ci_timeout():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--ci-timeout 5m") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(
                 ci_timeout=datetime.timedelta(seconds=5 * 60),
             )
 
@@ -280,8 +274,8 @@ def test_deprecated_max_ci_time_in_minutes():
         MARGE_GITLAB_URL="http://foo.com",
     ):
         with main("--max-ci-time-in-minutes=5") as bot:
-            assert bot.config.merge_opts != job.MergeJobOptions.default()
-            assert bot.config.merge_opts == job.MergeJobOptions.default(
+            assert bot.config.merge_opts != job.MergeJobOptions()
+            assert bot.config.merge_opts == job.MergeJobOptions(
                 ci_timeout=datetime.timedelta(seconds=5 * 60),
             )
 
@@ -384,8 +378,8 @@ def test_config_file():
                 admin_user_info = {**user_info}
                 admin_user_info["is_admin"] = True
                 assert bot.user.info == admin_user_info
-                assert bot.config.merge_opts != job.MergeJobOptions.default()
-                assert bot.config.merge_opts == job.MergeJobOptions.default(
+                assert bot.config.merge_opts != job.MergeJobOptions()
+                assert bot.config.merge_opts == job.MergeJobOptions(
                     embargo=interval.IntervalUnion.from_human("Fri 1pm-Mon 7am"),
                     add_tested=True,
                     add_part_of=True,
@@ -405,8 +399,8 @@ def test_config_overwrites():
                 admin_user_info = {**user_info}
                 admin_user_info["is_admin"] = True
                 assert bot.user.info == admin_user_info
-                assert bot.config.merge_opts != job.MergeJobOptions.default()
-                assert bot.config.merge_opts == job.MergeJobOptions.default(
+                assert bot.config.merge_opts != job.MergeJobOptions()
+                assert bot.config.merge_opts == job.MergeJobOptions(
                     embargo=interval.IntervalUnion.from_human("Fri 1pm-Mon 7am"),
                     add_tested=True,
                     add_part_of=True,
