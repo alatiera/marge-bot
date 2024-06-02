@@ -80,8 +80,7 @@ class MergeRequest(gitlab.Resource):
                         assigned = datetime.datetime.strptime(
                             date_string, date_format
                         ).timestamp()
-                    if assigned > assigned_at:
-                        assigned_at = assigned
+                    assigned_at = max(assigned_at, assigned)
         return assigned_at
 
     @classmethod

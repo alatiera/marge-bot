@@ -267,7 +267,7 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
             }
             assert not set(fixture_opts).intersection(kwargs)
             kwargs.update(fixture_opts)
-            return marge.job.MergeJobOptions.default(**kwargs)
+            return marge.job.MergeJobOptions(**kwargs)
 
         yield make_options
 
