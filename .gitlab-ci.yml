@@ -24,8 +24,9 @@ test:
           - "3.11"
           - "3.12"
   script:
-    - pip install tox poetry
-    - tox -e py3
+    - pip install poetry
+    - poetry install --only dev
+    - poetry run -- tox -e py3
   coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
   artifacts:
     paths:
@@ -40,9 +41,10 @@ lint:
   extends: .rules-merge-request
   image: python:3.11
   script:
-    - pip install tox poetry
-    - tox -e flake8,mypy,pylint
-    - tox -e black,isort -- --check
+    - pip install poetry
+    - poetry install --only dev
+    - poetry run -- tox -e flake8,mypy,pylint
+    - poetry run -- tox -e black,isort -- --check
 
 docker-build:
   image:
