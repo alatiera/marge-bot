@@ -21,6 +21,7 @@ marge = "marge.__main__:run"
 "marge.app" = "marge.__main__:run"
 
 [tool.poetry.group.dev.dependencies]
+tox = "^4.15.0"
 
 [tool.poetry.group.test.dependencies]
 pendulum = {extras = ["test"], version = "^3.0.0"}
