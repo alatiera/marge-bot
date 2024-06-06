@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Union, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Union, cast
 
 from . import gitlab
 
@@ -79,3 +79,35 @@ class Approvals(gitlab.Resource):
 
         for uid in self.approver_ids:
             self._api.call(gitlab.POST(approve_url), sudo=uid)
+
+
+class CustomApprovals(Approvals):
+    """Allows a limited way to manage approvals on CE."""
+
+    def __init__(
+        self,
+        api: gitlab.Api,
+        info: Dict[str, Any],
+        allowed_approvers: List[str],
+        approvals_required: int = 1,
+    ):
+        super().__init__(api, info)
+        self._allowed_approvers = allowed_approvers
+        self._approvals_required = approvals_required
+
+    @property
+    def allowed_approvals_usernames(self) -> List[str]:
+        """Filter approver_usernames to only those allowed."""
+        return [
+            username
+            for username in self.approver_usernames
+            if username in self._allowed_approvers
+        ]
+
+    @property
+    def approvals_left(self) -> int:
+        return max(0, self._approvals_required - len(self.allowed_approvals_usernames))
+
+    @property
+    def sufficient(self) -> bool:
+        return not self.approvals_left

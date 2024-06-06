@@ -157,6 +157,14 @@ options:
   --exc-comment EXC_COMMENT
                         Provide additional text, like a log URL, to append to some exception-related MR comments.
                            [env var: MARGE_EXC_COMMENT] (default: None)
+  --custom-approver [CUSTOM_APPROVER ...]
+                        Specify one or more approver usernames to accept instead of asking GitLab.
+                        For CE approval use.
+                           [env var: MARGE_CUSTOM_APPROVER] (default: None)
+  --custom-approvals-required CUSTOM_APPROVALS_REQUIRED
+                        Required number of approvals from --custom-approval.
+                        For CE approval use.
+                           [env var: MARGE_CUSTOM_APPROVALS_REQUIRED] (default: 0)
 ```
 
 Here is a config file example

@@ -36,7 +36,7 @@ class SingleMergeJob(mb_job.MergeJob):
         log.info("Processing !%s - %r", merge_request.iid, merge_request.title)
 
         try:
-            approvals = merge_request.fetch_approvals()
+            approvals = merge_request.fetch_approvals(self.approvals_factory)
             self.update_merge_request_and_accept(approvals)
             log.info("Successfully merged !%s.", merge_request.info["iid"])
         except mb_job.SkipMerge as err:
