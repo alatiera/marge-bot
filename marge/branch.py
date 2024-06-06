@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from . import gitlab
 
 GET = gitlab.GET
+DELETE = gitlab.DELETE
 
 
 class Branch(gitlab.Resource):
@@ -16,6 +17,10 @@ class Branch(gitlab.Resource):
         if TYPE_CHECKING:
             assert isinstance(info, dict)
         return cls(api, info)
+
+    @classmethod
+    def delete_by_name(cls, project_id: int, branch: str, api: gitlab.Api) -> None:
+        api.call(DELETE(f"projects/{project_id}/repository/branches/{branch}"))
 
     @property
     def id(self) -> int:
