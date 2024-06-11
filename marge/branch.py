@@ -1,3 +1,4 @@
+import urllib.parse
 from typing import TYPE_CHECKING
 
 from . import gitlab
@@ -20,7 +21,12 @@ class Branch(gitlab.Resource):
 
     @classmethod
     def delete_by_name(cls, project_id: int, branch: str, api: gitlab.Api) -> None:
-        api.call(DELETE(f"projects/{project_id}/repository/branches/{branch}"))
+        api.call(
+            DELETE(
+                f"projects/{project_id}/repository/branches/"
+                f'{urllib.parse.quote(branch, safe="")}'
+            )
+        )
 
     @property
     def id(self) -> int:
