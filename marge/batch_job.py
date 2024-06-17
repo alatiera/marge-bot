@@ -15,8 +15,6 @@ class CannotBatch(Exception):
 
 
 class BatchMergeJob(job.MergeJob):
-    BATCH_BRANCH_NAME = "marge_bot_batch_merge_job"
-
     def __init__(
         self,
         *,
