@@ -1,7 +1,6 @@
 import enum
-import functools
 import logging as log
-from typing import TYPE_CHECKING, Any, Dict, List, cast
+from typing import TYPE_CHECKING, Any, Dict, List
 
 from . import gitlab
 
@@ -15,23 +14,6 @@ class Project(gitlab.Resource):
         if TYPE_CHECKING:
             assert isinstance(info, dict)
         return cls(api, info)
-
-    @classmethod
-    def fetch_by_path(cls, project_path: str, api: gitlab.Api) -> "Project":
-        def filter_by_path_with_namespace(
-            projects: List[Dict[str, Any]]
-        ) -> List[Dict[str, Any]]:
-            return [p for p in projects if p["path_with_namespace"] == project_path]
-
-        make_project = functools.partial(cls, api)
-
-        all_projects = api.collect_all_pages(GET("/projects"))
-        return cast(
-            Project,
-            gitlab.from_singleton_list(make_project)(
-                filter_by_path_with_namespace(all_projects)
-            ),
-        )
 
     @classmethod
     def fetch_all_mine(cls, api: gitlab.Api) -> List["Project"]:
