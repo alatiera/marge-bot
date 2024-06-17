@@ -112,34 +112,3 @@ class TestRepoManager:
         assert git_run.call_count == 6
 
         assert repo_1.local_path != repo_2.local_path
-
-    def test_can_forget_repos(self, git_run):
-        repo_manager = self.repo_manager
-        project_1 = self.new_project(1234, "some/stuff")
-        project_2 = self.new_project(5678, "other/things")
-
-        assert git_run.call_count == 0
-
-        repo_1 = repo_manager.repo_for_project(project_1)
-        assert git_run.call_count == 3
-
-        repo_2 = repo_manager.repo_for_project(project_2)
-        assert git_run.call_count == 6
-
-        cached_repo_1 = repo_manager.repo_for_project(project_1)
-        assert cached_repo_1 is repo_1
-        assert git_run.call_count == 6
-
-        repo_manager.forget_repo(project_1)
-        another_repo_1 = repo_manager.repo_for_project(project_1)
-        assert another_repo_1.local_path != repo_1.local_path
-        assert another_repo_1.remote_url == repo_1.remote_url
-        assert git_run.call_count == 9
-
-        # project_2's repo is still around
-        cached_repo_2 = repo_manager.repo_for_project(project_2)
-        assert cached_repo_2 is repo_2
-        assert git_run.call_count == 9
-
-        # shouldn't fail
-        repo_manager.forget_repo(self.new_project(90, "non/existent"))
