@@ -23,7 +23,7 @@ class Branch(gitlab.Resource):
     def delete_by_name(cls, project_id: int, branch: str, api: gitlab.Api) -> None:
         api.call(
             DELETE(
-                f"projects/{project_id}/repository/branches/"
+                f"/projects/{project_id}/repository/branches/"
                 f'{urllib.parse.quote(branch, safe="")}'
             )
         )

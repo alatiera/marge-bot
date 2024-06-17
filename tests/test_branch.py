@@ -16,7 +16,7 @@ class TestBranch:
             api=self.api,
         )
         self.api.call.assert_called_once_with(
-            DELETE("projects/923/repository/branches/branch%2Fwith%2Fslashes")
+            DELETE("/projects/923/repository/branches/branch%2Fwith%2Fslashes")
         )
 
     def test_delete_by_name_without_slashes(
@@ -28,5 +28,5 @@ class TestBranch:
             api=self.api,
         )
         self.api.call.assert_called_once_with(
-            DELETE("projects/923/repository/branches/branch-without_slashes")
+            DELETE("/projects/923/repository/branches/branch-without_slashes")
         )
