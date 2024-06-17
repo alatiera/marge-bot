@@ -1,6 +1,5 @@
 import datetime
 import logging as log
-import sys
 import time
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
@@ -68,18 +67,9 @@ class MergeRequest(gitlab.Resource):
                 if match_body in note.get("body"):
                     date_string = note.get("created_at")
                     date_format = "%Y-%m-%dT%H:%M:%S.%f%z"
-                    if (sys.version_info.major, sys.version_info.minor) <= (3, 6):
-                        assigned = (
-                            datetime.datetime.strptime(
-                                date_string[:-1], date_format[:-2]
-                            )
-                            .replace(tzinfo=datetime.timezone.utc)
-                            .timestamp()
-                        )
-                    else:
-                        assigned = datetime.datetime.strptime(
-                            date_string, date_format
-                        ).timestamp()
+                    assigned = datetime.datetime.strptime(
+                        date_string, date_format
+                    ).timestamp()
                     assigned_at = max(assigned_at, assigned)
         return assigned_at
 
