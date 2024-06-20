@@ -23,9 +23,6 @@ class RepoManager(abc.ABC):
         self._timeout = timeout
         self._reference = reference
 
-    def forget_repo(self, project: mb_project.Project) -> None:
-        self._repos.pop(project.id, None)
-
     @abc.abstractmethod
     def repo_for_project(self, project: mb_project.Project) -> git.Repo:
         ...

@@ -41,19 +41,6 @@ class User(gitlab.Resource):
             assert isinstance(info, dict)
         return cls(api, info)
 
-    @classmethod
-    def fetch_by_username(cls, username: str, api: gitlab.Api) -> "User":
-        info = api.call(
-            gitlab.GET(
-                "/users",
-                {"username": username},
-                gitlab.from_singleton_list(),
-            )
-        )
-        if TYPE_CHECKING:
-            assert isinstance(info, dict)
-        return cls(api, info)
-
     @property
     def name(self) -> str:
         result = self.info["name"]

@@ -47,18 +47,6 @@ class TestProject:
         api.call.assert_called_once_with(GET("/projects/1234"))
         assert project.info == INFO
 
-    def test_fetch_by_path_exists(self):
-        api = self.api
-        prj1 = INFO
-        prj2 = dict(INFO, id=1235, path_with_namespace="foo/bar")
-        prj3 = dict(INFO, id=1240, path_with_namespace="foo/foo")
-        api.collect_all_pages = Mock(return_value=[prj1, prj2, prj3])
-
-        project = Project.fetch_by_path("foo/bar", api)
-
-        api.collect_all_pages.assert_called_once_with(GET("/projects"))
-        assert project and project.info == prj2
-
     def fetch_all_mine_with_permissions(self):
         prj1, prj2 = INFO, dict(INFO, id=678)
 

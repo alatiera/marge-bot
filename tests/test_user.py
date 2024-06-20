@@ -1,4 +1,4 @@
-from unittest.mock import ANY, Mock
+from unittest.mock import Mock
 
 from marge.gitlab import GET, Api
 from marge.user import User
@@ -29,15 +29,6 @@ class TestProjectWithUser:
 
         api.call.assert_called_once_with(GET("/users/1234"))
         assert user.info == INFO
-
-    def test_fetch_by_username_exists(self):
-        api = self.api
-        api.call = Mock(return_value=INFO)
-
-        user = User.fetch_by_username("john_smith", api)
-
-        api.call.assert_called_once_with(GET("/users", {"username": "john_smith"}, ANY))
-        assert user and user.info == INFO
 
     def test_properties(self):
         user = User(api=self.api, info=INFO)
