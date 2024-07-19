@@ -155,8 +155,9 @@ class Repo:
 
         Throws a `GitError` if the rebase fails. Will also try to --abort it.
         """
+        fuse_args = [ '--no-ff' ]
         return self._fuse_branch(
-            "rebase", branch, new_base, source_repo_url=source_repo_url, local=local
+            "rebase", branch, new_base, *fuse_args, source_repo_url=source_repo_url, local=local
         )
 
     def _fuse_branch(
