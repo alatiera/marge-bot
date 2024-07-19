@@ -215,6 +215,7 @@ class MergeJob:
         if TYPE_CHECKING:
             assert self._options.ci_timeout is not None
         consecutive_errors = 0
+        waiting_for_queue = 0
         while True:
             try:
                 ci_status, pipeline_msg = self.get_mr_ci_status(
@@ -242,7 +243,19 @@ class MergeJob:
             if ci_status in ("canceling", "canceled"):
                 raise CannotMerge(f"Someone canceled the CI. {pipeline_msg}")
 
-            if ci_status not in ("created", "pending", "running"):
+            if waiting_for_queue > -1 and ci_status in (
+                "created", "waiting_for_resource", "preparing", "waiting_for_callback", "manual", None
+            ):
+                waiting_for_queue += 1
+                # give it five minutes to become runnable in extreme cases
+                if waiting_for_queue > 30:
+                    raise CannotMerge(
+                        f"Pipeline took longer than 5 minutes to become runnable: {ci_status}. {pipeline_msg}"
+                    )
+                log.warning("Waiting for pipeline to be runnable")
+            elif ci_status in ('pending', 'running'):
+                waiting_for_queue = -1
+            else:
                 log.warning("Suspicious CI status: %r. %s", ci_status, pipeline_msg)
 
             # Do we have enough time left to wait for another loop?
