@@ -239,7 +239,7 @@ class MergeJob:
             if ci_status == "failed":
                 raise CannotMerge(f"CI failed! {pipeline_msg}")
 
-            if ci_status == "canceled":
+            if ci_status in ("canceling", "canceled"):
                 raise CannotMerge(f"Someone canceled the CI. {pipeline_msg}")
 
             if ci_status not in ("created", "pending", "running"):
