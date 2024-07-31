@@ -1,5 +1,4 @@
 import enum
-import logging as log
 from typing import TYPE_CHECKING, Any, Dict, List
 
 from . import gitlab
@@ -17,18 +16,15 @@ class Project(gitlab.Resource):
 
     @classmethod
     def fetch_all_mine(cls, api: gitlab.Api) -> List["Project"]:
+        # GitLab has an issue where projects may not show appropriate permissions in
+        # nested groups (see https://gitlab.com/gitlab-org/gitlab/-/issues/22316). Using
+        # `min_access_level` is known to provide the correct projects.
         projects_kwargs: Dict[str, Any] = {
             "membership": True,
             "with_merge_requests_enabled": True,
             "archived": False,
+            "min_access_level": AccessLevel.developer.value,
         }
-
-        # GitLab has an issue where projects may not show appropriate permissions in nested groups. Using
-        # `min_access_level` is known to provide the correct projects, so we'll prefer this method
-        # if it's available. See #156 for more details.
-        use_min_access_level = api.version().release >= (11, 2)
-        if use_min_access_level:
-            projects_kwargs["min_access_level"] = int(AccessLevel.developer)
 
         projects_info = api.collect_all_pages(
             GET(
@@ -39,33 +35,15 @@ class Project(gitlab.Resource):
         if TYPE_CHECKING:
             assert isinstance(projects_info, list)
 
-        def project_seems_ok(project_info: Dict[str, Any]) -> bool:
-            # A bug in at least GitLab 9.3.5 would make GitLab not report permissions after
-            # moving subgroups. See for full story #19.
-            permissions = project_info["permissions"]
-            permissions_ok = bool(
-                permissions["project_access"] or permissions["group_access"]
-            )
-            if not permissions_ok:
-                project_name = project_info["path_with_namespace"]
-                log.warning(
-                    "Ignoring project %s since GitLab provided no user permissions",
-                    project_name,
-                )
-
-            return permissions_ok
-
         projects = []
 
         for project_info in projects_info:
-            if use_min_access_level:
-                # We know we fetched projects with at least developer access, so we'll use that as
-                # a fallback if GitLab doesn't correctly report permissions as described above.
-                project_info["permissions"]["marge"] = {
-                    "access_level": AccessLevel.developer
-                }
-            elif not project_seems_ok(project_info):
-                continue
+            # We know we fetched projects with at least developer access, so we'll
+            # use that as a fallback if GitLab doesn't correctly report permissions as
+            # described above.
+            project_info["permissions"]["marge"] = {
+                "access_level": AccessLevel.developer
+            }
 
             projects.append(cls(api, project_info))
 
