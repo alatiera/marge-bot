@@ -34,8 +34,6 @@ class MockLab:  # pylint: disable=too-few-public-methods
             gitlab_url=gitlab_url, auth_token="no-token", initial_state="initial"
         )
 
-        api.add_transition(GET("/version"), Ok({"version": "9.2.3-ee"}))
-
         self.user_info = dict(test_user.INFO)
         self.user_id = self.user_info["id"]
         api.add_user(self.user_info, is_current=True)

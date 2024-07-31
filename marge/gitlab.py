@@ -10,7 +10,6 @@ from typing import (
     List,
     Optional,
     Protocol,
-    Tuple,
     Union,
     cast,
 )
@@ -110,12 +109,6 @@ class Api:
                 fetch_again = False
 
         return result
-
-    def version(self) -> "Version":
-        response = self.call(GET("/version"))
-        if TYPE_CHECKING:
-            assert isinstance(response, dict)
-        return Version.parse(response["version"])
 
 
 def from_singleton_list(
@@ -274,27 +267,3 @@ class Resource(abc.ABC):
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._api}, {self.info})"
-
-
-@dataclasses.dataclass
-class Version:
-    release: Tuple[int, ...]
-    edition: Optional[str]
-
-    @classmethod
-    def parse(cls, string: str) -> "Version":
-        maybe_split_string = string.split("-", maxsplit=1)
-        if len(maybe_split_string) == 2:
-            release_string, edition = maybe_split_string
-        else:
-            release_string, edition = string, None
-
-        release = tuple(int(number) for number in release_string.split("."))
-        return cls(release=release, edition=edition)
-
-    @property
-    def is_ee(self) -> bool:
-        return self.edition == "ee"
-
-    def __str__(self) -> str:
-        return f"{'.'.join(map(str, self.release))}-{self.edition}"
