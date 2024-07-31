@@ -372,12 +372,6 @@ def main(args: Optional[List[str]] = None) -> int:
         if options.use_merge_strategy:
             fusion = bot.Fusion.merge
         elif options.rebase_remotely:
-            version = api.version()
-            if version.release < (11, 6):
-                raise ValueError(
-                    "Need GitLab 11.6+ to use rebase through the API, "
-                    f"but your instance is {version}"
-                )
             fusion = bot.Fusion.gitlab_rebase
         else:
             fusion = bot.Fusion.rebase
