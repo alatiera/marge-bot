@@ -230,13 +230,16 @@ class Api(gitlab.Api):
         self.add_resource(path, info, sudo, from_state, to_state)
 
     def add_pipelines(
-        self, project_id, info, sudo=None, from_state=None, to_state=None
+        self,
+        project_id,
+        merge_request_iid,
+        info,
+        sudo=None,
+        from_state=None,
+        to_state=None,
     ):
         self.add_transition(
-            GET(
-                f"/projects/{project_id}/pipelines",
-                args={"ref": info["ref"], "order_by": "id", "sort": "desc"},
-            ),
+            GET(f"/projects/{project_id}/merge_requests/{merge_request_iid}/pipelines"),
             Ok([info]),
             sudo,
             from_state,

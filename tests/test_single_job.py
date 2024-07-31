@@ -1,4 +1,4 @@
-# pylint: disable=too-many-locals
+# pylint: disable=too-many-lines,too-many-locals
 import contextlib
 import dataclasses
 import functools
@@ -74,10 +74,12 @@ class SingleJobMockLab(MockLab):
         )
         api = self.api
         self.rewritten_sha = rewritten_sha
+        target_project_id = self.merge_request_info["project_id"]
+        source_project_id = self.merge_request_info["source_project_id"]
         if expect_gitlab_rebase:
             api.add_transition(
                 PUT(
-                    f'/projects/{self.merge_request_info["project_id"]}/merge_requests/'
+                    f"/projects/{target_project_id}/merge_requests/"
                     f'{self.merge_request_info["iid"]}/rebase',
                 ),
                 Ok(True),
@@ -103,14 +105,15 @@ class SingleJobMockLab(MockLab):
             # Corresponds to the `merge_request.trigger_pipeline()` call.
             api.add_transition(
                 POST(
-                    f"/projects/1234/merge_requests/{self.merge_request_info['iid']}/pipelines"
+                    f"/projects/{target_project_id}/merge_requests/{self.merge_request_info['iid']}/pipelines"
                 ),
                 Ok({}),
                 to_state="final_pipeline_triggered",
             )
-            # Corresponds to `pipelines_by_branch()` by `wait_for_ci_to_pass`.
+            # Corresponds to `pipelines_by_merge_request()` by `wait_for_ci_to_pass`.
             api.add_pipelines(
-                self.merge_request_info["source_project_id"],
+                target_project_id,
+                self.merge_request_info["iid"],
                 _pipeline(
                     sha1=rewritten_sha,
                     status="success",
@@ -121,7 +124,8 @@ class SingleJobMockLab(MockLab):
             )
 
         api.add_pipelines(
-            self.merge_request_info["source_project_id"],
+            target_project_id,
+            self.merge_request_info["iid"],
             _pipeline(
                 sha1=rewritten_sha,
                 status="running",
@@ -131,7 +135,8 @@ class SingleJobMockLab(MockLab):
             to_state="passed",
         )
         api.add_pipelines(
-            self.merge_request_info["source_project_id"],
+            target_project_id,
+            self.merge_request_info["iid"],
             _pipeline(
                 sha1=rewritten_sha,
                 status="success",
@@ -139,7 +144,6 @@ class SingleJobMockLab(MockLab):
             ),
             from_state=["passed", "merged"],
         )
-        source_project_id = self.merge_request_info["source_project_id"]
         api.add_transition(
             GET(
                 f"/projects/{source_project_id}/repository/branches/"
@@ -158,7 +162,7 @@ class SingleJobMockLab(MockLab):
         )
         api.add_transition(
             PUT(
-                f'/projects/1234/merge_requests/{self.merge_request_info["iid"]}/merge',
+                f'/projects/{target_project_id}/merge_requests/{self.merge_request_info["iid"]}/merge',
                 {
                     "sha": rewritten_sha,
                     "should_remove_source_branch": True,
@@ -174,7 +178,7 @@ class SingleJobMockLab(MockLab):
         )
         api.add_transition(
             GET(
-                f"/projects/1234/repository/branches/"
+                f"/projects/{target_project_id}/repository/branches/"
                 f'{self.merge_request_info["target_branch"]}',
             ),
             Ok({"commit": {"id": self.rewritten_sha}}),
@@ -407,19 +411,22 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
 
     def test_succeeds_if_skipped(self, mocks):
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=mocks.mocklab.rewritten_sha, status="running"),
             from_state="pushed",
             to_state="skipped",
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=mocks.mocklab.rewritten_sha, status="skipped"),
             from_state=["skipped", "merged"],
         )
-        # `pipelines_by_branch()` by `wait_for_ci_to_pass`.
+        # `pipelines_by_merge_request()` by `wait_for_ci_to_pass`.
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(
                 sha1=mocks.mocklab.rewritten_sha,
                 status="skipped",
@@ -458,18 +465,21 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
 
     def test_fails_if_ci_fails(self, mocks):
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=mocks.mocklab.rewritten_sha, status="running"),
             from_state="pushed",
             to_state="failed",
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=mocks.mocklab.rewritten_sha, status="failed"),
             from_state=["failed"],
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(
                 sha1=mocks.mocklab.rewritten_sha,
                 status="failed",
@@ -487,18 +497,21 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
 
     def test_fails_if_ci_canceled(self, mocks):
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=mocks.mocklab.rewritten_sha, status="running"),
             from_state="pushed",
             to_state="canceled",
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=mocks.mocklab.rewritten_sha, status="canceled"),
             from_state=["canceled"],
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(
                 sha1=mocks.mocklab.rewritten_sha,
                 status="canceled",
@@ -528,7 +541,8 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
             to_state="pushed_but_head_changed",
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(
                 sha1=new_branch_head_sha,
                 status="success",
@@ -636,7 +650,8 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
             from_state=["pushed_but_master_moved", "merge_rejected"],
         )
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(sha1=first_rewritten_sha, status="success"),
             from_state=["pushed_but_master_moved", "merge_rejected"],
         )
@@ -678,7 +693,8 @@ class TestUpdateAndAccept:  # pylint: disable=too-many-public-methods
         # Register additional pipeline check introduced by
         # `guarantee_final_pipeline`.
         mocks.api.add_pipelines(
-            mocks.mocklab.merge_request_info["source_project_id"],
+            mocks.mocklab.merge_request_info["target_project_id"],
+            mocks.mocklab.merge_request_info["iid"],
             _pipeline(
                 sha1=first_rewritten_sha,
                 status="success",
