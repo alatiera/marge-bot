@@ -3,7 +3,7 @@ from unittest.mock import Mock, call
 import pytest
 
 import marge.user
-from marge.gitlab import GET, POST, PUT, Api, BadRequest, Version
+from marge.gitlab import GET, POST, PUT, Api, BadRequest
 from marge.merge_request import (
     NO_JOBS_MESSAGE,
     RULES_PREVENT_JOBS_MESSAGE,
@@ -52,7 +52,6 @@ DISCUSSION = {
 class TestMergeRequest:
     def setup_method(self, _method):
         self.api = Mock(Api)
-        self.api.version = Mock(return_value=Version.parse("9.2.3-ee"))
         self.merge_request = MergeRequest(api=self.api, info=INFO)
 
     def test_fetch_by_iid(self):
