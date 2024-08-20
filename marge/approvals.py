@@ -45,7 +45,7 @@ class Approvals(gitlab.Resource):
 
     @property
     def approvals_left(self) -> int:
-        return self.info.get("approvals_left", 0)
+        return cast(int, self.info.get("approvals_left", 0))
 
     @property
     def sufficient(self) -> bool:
