@@ -11,7 +11,7 @@ import sys
 import tempfile
 from typing import Iterator, List, Optional, Tuple, cast
 
-import configargparse  # type: ignore[import]
+import configargparse  # type: ignore[import-untyped]
 
 from . import bot, gitlab, interval
 from . import user as user_module
