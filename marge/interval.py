@@ -3,7 +3,7 @@ import enum
 import operator
 from typing import Iterable, Tuple, Union
 
-import maya  # type: ignore[import]
+import maya  # type: ignore[import-untyped]
 
 
 # pylint: disable=invalid-name

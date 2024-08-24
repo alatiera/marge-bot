@@ -200,7 +200,12 @@ class MergeRequest(gitlab.Resource):
 
     @property
     def squash(self) -> bool:
-        return self.info.get("squash", False)  # missing means auto-squash not supported
+        result = self.info.get(
+            "squash", False
+        )  # missing means auto-squash not supported
+        if TYPE_CHECKING:
+            assert isinstance(result, bool)
+        return result
 
     @property
     def source_project_id(self) -> int:

@@ -49,7 +49,7 @@ class MergeJob:
             self.approvals_factory = lambda api, info: CustomApprovals(
                 api,
                 info,
-                allowed_approvers=cast(List[str], custom_allowed),
+                allowed_approvers=custom_allowed,
                 approvals_required=options.custom_required_approvals,
             )
 
