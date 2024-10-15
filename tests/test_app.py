@@ -66,9 +66,6 @@ def main(cmdline=""):
         )
         user_info_for_token = dict(user_info, is_admin=auth_token == "ADMIN-TOKEN")
         api.add_user(user_info_for_token, is_current=True)
-        api.add_transition(
-            gitlab_mock.GET("/version"), gitlab_mock.Ok({"version": "11.6.0-ce"})
-        )
         return api
 
     class DoNothingBot(bot_module.Bot):

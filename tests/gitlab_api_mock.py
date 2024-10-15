@@ -34,8 +34,6 @@ class MockLab:  # pylint: disable=too-few-public-methods
             gitlab_url=gitlab_url, auth_token="no-token", initial_state="initial"
         )
 
-        api.add_transition(GET("/version"), Ok({"version": "9.2.3-ee"}))
-
         self.user_info = dict(test_user.INFO)
         self.user_id = self.user_info["id"]
         api.add_user(self.user_info, is_current=True)
@@ -230,13 +228,16 @@ class Api(gitlab.Api):
         self.add_resource(path, info, sudo, from_state, to_state)
 
     def add_pipelines(
-        self, project_id, info, sudo=None, from_state=None, to_state=None
+        self,
+        project_id,
+        merge_request_iid,
+        info,
+        sudo=None,
+        from_state=None,
+        to_state=None,
     ):
         self.add_transition(
-            GET(
-                f"/projects/{project_id}/pipelines",
-                args={"ref": info["ref"], "order_by": "id", "sort": "desc"},
-            ),
+            GET(f"/projects/{project_id}/merge_requests/{merge_request_iid}/pipelines"),
             Ok([info]),
             sudo,
             from_state,

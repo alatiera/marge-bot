@@ -4,7 +4,7 @@ import pytest
 
 import marge.user
 from marge.approvals import Approvals, CustomApprovals
-from marge.gitlab import GET, POST, Api, Version
+from marge.gitlab import GET, POST, Api
 
 # testing this here is more convenient
 from marge.job import CannotMerge, _get_reviewer_names_and_emails
@@ -70,7 +70,6 @@ USERS = {
 class TestApprovals:
     def setup_method(self, _method):
         self.api = Mock(Api)
-        self.api.version = Mock(return_value=Version.parse("9.2.3-ee"))
         self.approvals = Approvals(api=self.api, info=INFO)
 
     def test_fetch_from_merge_request(self):
@@ -84,36 +83,6 @@ class TestApprovals:
             GET("/projects/1234/merge_requests/6/approvals")
         )
         assert approvals.info == INFO
-
-    def test_fetch_from_merge_request_newer_ce(self):
-        api = self.api
-        api.version = Mock(return_value=Version.parse("13.2.0"))
-        api.call = Mock(return_value=INFO)
-
-        merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
-        approvals = merge_request.fetch_approvals(Approvals)
-
-        api.call.assert_called_once_with(
-            GET("/projects/1234/merge_requests/6/approvals")
-        )
-        assert approvals.info == INFO
-
-    def test_fetch_from_merge_request_ce_compat(self):
-        api = self.api
-        api.version = Mock(return_value=Version.parse("9.2.3"))
-        api.call = Mock()
-
-        merge_request = MergeRequest(api, {"id": 74, "iid": 6, "project_id": 1234})
-        approvals = merge_request.fetch_approvals(Approvals)
-
-        api.call.assert_not_called()
-        assert approvals.info == {
-            "id": 74,
-            "iid": 6,
-            "project_id": 1234,
-            "approvals_left": 0,
-            "approved_by": [],
-        }
 
     def test_properties(self):
         assert self.approvals.project_id == 1

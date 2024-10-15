@@ -10,14 +10,6 @@ class User(gitlab.Resource):
         if TYPE_CHECKING:
             assert isinstance(info, dict)
 
-        if info.get("is_admin") is None:  # WORKAROUND FOR BUG IN 9.2.2
-            try:
-                # sudoing succeeds iff we are admin
-                api.call(gitlab.GET("/user"), sudo=info["id"])
-                info["is_admin"] = True
-            except gitlab.Forbidden:
-                info["is_admin"] = False
-
         return cls(api, info)
 
     @property
@@ -29,7 +21,7 @@ class User(gitlab.Resource):
 
     @property
     def is_admin(self) -> bool:
-        result = self.info["is_admin"]
+        result = self.info.get("is_admin") is True
         if TYPE_CHECKING:
             assert isinstance(result, bool)
         return result

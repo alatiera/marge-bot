@@ -273,12 +273,7 @@ class MergeRequest(gitlab.Resource):
         self._info = result
 
     def comment(self, message: str) -> Dict[str, Any]:
-        if self._api.version().release >= (9, 2, 2):
-            notes_url = f"/projects/{self.project_id}/merge_requests/{self.iid}/notes"
-        else:
-            # GitLab botched the v4 api before 9.2.2
-            notes_url = f"/projects/{self.project_id}/merge_requests/{self.id}/notes"
-
+        notes_url = f"/projects/{self.project_id}/merge_requests/{self.iid}/notes"
         result = self._api.call(gitlab.POST(notes_url, {"body": message}))
         if TYPE_CHECKING:
             assert isinstance(result, dict)
@@ -360,8 +355,7 @@ class MergeRequest(gitlab.Resource):
     def fetch_approvals(
         self, approvals_factory: Callable[[gitlab.Api, Dict[str, Any]], Approvals]
     ) -> Approvals:
-        # 'id' needed for for GitLab 9.2.2 hack (see Approvals.refetch_info())
-        info = {"id": self.id, "iid": self.iid, "project_id": self.project_id}
+        info = {"iid": self.iid, "project_id": self.project_id}
         approvals = approvals_factory(self.api, info)
         approvals.refetch_info()
         return approvals
