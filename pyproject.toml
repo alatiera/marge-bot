@@ -10,7 +10,7 @@ repository = "https://gitlab.com/marge-org/marge-bot"
 keywords = ["gitlab", "merge request", "merge train"]
 
 [tool.poetry.dependencies]
-python = "^3.8.1"
+python = "^3.9.0"
 ConfigArgParse = "^1.5.3"
 maya = "^0.6.1"
 PyYAML = "^6.0.1"
