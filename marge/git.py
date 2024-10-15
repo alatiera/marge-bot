@@ -18,7 +18,9 @@ from . import trailerfilter
 GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=no "
 
 
-def _filter_branch_script(trailer_name: str, trailer_values: List[str]) -> str:
+def _filter_branch_script(
+    trailer_name: str, trailer_values: List[str], keep_trailers: bool
+) -> str:
     trailers: str = shlex.quote(
         "\n".join(
             f"{trailer_name}: {trailer_value}"
@@ -26,7 +28,7 @@ def _filter_branch_script(trailer_name: str, trailer_values: List[str]) -> str:
         )
     )
 
-    filter_script = f"TRAILERS={trailers} python3 {trailerfilter.__file__}"
+    filter_script = f"TRAILERS={trailers} KEEP_TRAILERS={keep_trailers} python3 {trailerfilter.__file__}"
     return filter_script
 
 
@@ -70,13 +72,16 @@ class Repo:
         trailer_values: List[str],
         branch: str,
         start_commit: str,
+        keep_trailers: bool,
     ) -> str:
-        """Replace `trailer_name` in commit messages with `trailer_values` in `branch` from `start_commit`."""
+        """Add `trailer_name` in commit messages with `trailer_values` in `branch` from `start_commit`."""
 
         # Strips all `$trailer_name``: lines and trailing newlines, adds an empty
         # newline and tags on the `$trailer_name: $trailer_value` for each `trailer_value` in
         # `trailer_values`.
-        filter_script = _filter_branch_script(trailer_name, trailer_values)
+        filter_script = _filter_branch_script(
+            trailer_name, trailer_values, keep_trailers
+        )
         commit_range = start_commit + ".." + branch
         try:
             # --force = overwrite backup of last filter-branch

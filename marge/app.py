@@ -162,6 +162,11 @@ def _parse_config(
         help='Add "Reviewed-by: $approver" for each approver of MR to each commit in MR.\n',
     )
     parser.add_argument(
+        "--keep-reviewers",
+        action="store_true",
+        help='Ensure previous "Reviewed-by: $approver" aren\'t dropped by --add-reviewers\n',
+    )
+    parser.add_argument(
         "--impersonate-approvers",
         action="store_true",
         help="Marge-bot pushes effectively don't change approval status.\n",
@@ -391,6 +396,7 @@ def main(args: Optional[List[str]] = None) -> int:
                 add_tested=options.add_tested,
                 add_part_of=options.add_part_of,
                 add_reviewers=options.add_reviewers,
+                keep_reviewers=options.keep_reviewers,
                 reapprove=options.impersonate_approvers,
                 approval_timeout=options.approval_reset_timeout,
                 embargo=options.embargo,

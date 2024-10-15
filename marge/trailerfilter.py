@@ -32,7 +32,9 @@ def remove_duplicates(trailers: List[bytes]) -> List[bytes]:
     return list(collections.OrderedDict((t, None) for t in trailers).keys())
 
 
-def rework_commit_message(commit_message: bytes, trailers: List[bytes]) -> bytes:
+def rework_commit_message(
+    commit_message: bytes, trailers: List[bytes], keep_trailers: bool
+) -> bytes:
     if not commit_message:
         die(b"Expected a non-empty commit message")
 
@@ -41,7 +43,7 @@ def rework_commit_message(commit_message: bytes, trailers: List[bytes]) -> bytes
     filtered_lines = [
         line.rstrip()
         for line in commit_message.split(b"\n")
-        if line.split(b":", 1)[0].lower() not in trailer_names
+        if keep_trailers or line.split(b":", 1)[0].lower() not in trailer_names
     ]
 
     reworked_lines = filtered_lines[:]
@@ -65,9 +67,12 @@ def rework_commit_message(commit_message: bytes, trailers: List[bytes]) -> bytes
 
 def main() -> int:
     trailers = os.environb[b"TRAILERS"].split(b"\n") if os.environb[b"TRAILERS"] else []
+    keep_trailers: bool = os.environb.get(b"KEEP_TRAILERS", b"False") == b"True"
     assert all(b":" in trailer for trailer in trailers), trailers
     original_commit_message = STDIN.read().strip()
-    new_commit_message = rework_commit_message(original_commit_message, trailers)
+    new_commit_message = rework_commit_message(
+        original_commit_message, trailers, keep_trailers
+    )
     STDOUT.write(new_commit_message)
     return 0
 
