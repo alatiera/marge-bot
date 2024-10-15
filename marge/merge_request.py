@@ -143,8 +143,8 @@ class MergeRequest(gitlab.Resource):
         return result
 
     @property
-    def merge_status(self) -> str:
-        result = self.info["merge_status"]
+    def detailed_merge_status(self) -> str:
+        result = self.info["detailed_merge_status"]
         if TYPE_CHECKING:
             assert isinstance(result, str)
         return result

@@ -260,9 +260,9 @@ class MergeJob:
 
     def wait_for_merge_status_to_resolve(self, merge_request: MergeRequest) -> None:
         """
-        This function is for polling the async `merge_status` field in merge_request API response.
-        We suspected that the lag `merge_status` prevents MRs to be merged, and the fix did work
-        for some users.
+        This function is for polling the async `detailed_merge_status` field in
+        merge_request API response. We suspected that the lag `detailed_merge_status`
+        prevents MRs to be merged, and the fix did work for some users.
 
         But we are not sure if this is the root cause and if this is a proper fix. As there're some
         evidence that suggest gitlab will always check the mergeability synchronously while merging MRs.
@@ -272,29 +272,40 @@ class MergeJob:
         waiting_time_in_secs = 5
 
         log.info(
-            "Waiting for MR !%s to have merge_status can_be_merged", merge_request.iid
+            "Waiting for MR !%s to have detailed_merge_status mergeable",
+            merge_request.iid,
         )
         for attempt in range(attempts):
             merge_request.refetch_info()
-            merge_status = merge_request.merge_status
+            detailed_merge_status = merge_request.detailed_merge_status
 
-            if merge_status == "can_be_merged":
+            if detailed_merge_status == "mergeable":
                 log.info(
                     "MR !%s can be merged on attempt %d", merge_request.iid, attempt
                 )
                 return
 
-            if merge_status == "cannot_be_merged":
+            if detailed_merge_status in (
+                "unchecked",
+                "checking",
+                "approvals_syncing",
+            ):
                 log.info(
-                    "MR !%s cannot be merged on attempt %d", merge_request.iid, attempt
+                    "MR !%s merge status is '%s' on attempt %d.",
+                    merge_request.iid,
+                    detailed_merge_status,
+                    attempt,
                 )
-                raise CannotMerge("GitLab believes this MR cannot be merged.")
 
-            if merge_status == "unchecked":
+            else:
                 log.info(
-                    "MR !%s merge status currently unchecked on attempt %d.",
+                    "MR !%s cannot be merged on attempt %d with status %s",
                     merge_request.iid,
                     attempt,
+                    detailed_merge_status,
+                )
+                raise CannotMerge(
+                    f"MR has status '{detailed_merge_status}' and cannot be merged."
                 )
 
             time.sleep(waiting_time_in_secs)

@@ -19,7 +19,7 @@ INFO = {
     "state": "opened",
     "created_at": "2016-06-08T00:19:52.638Z",
     "updated_at": "2016-06-08T21:20:42.470Z",
-    "merge_status": "can_be_merged",
+    "detailed_merge_status": "mergeable",
     "approvals_required": 3,
     "approvals_left": 1,
     "approved_by": [
