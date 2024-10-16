@@ -129,6 +129,7 @@ class MergeJob:
                 trailer_values=reviewers,
                 branch=merge_request.source_branch,
                 start_commit="origin/" + merge_request.target_branch,
+                keep_trailers=self._options.keep_reviewers,
             )
 
         # add Tested-by
@@ -149,6 +150,7 @@ class MergeJob:
                 trailer_values=tested_by,
                 branch=merge_request.source_branch,
                 start_commit=merge_request.source_branch + "^",
+                keep_trailers=False,
             )
 
         # add Part-of
@@ -163,6 +165,7 @@ class MergeJob:
                 trailer_values=[part_of],
                 branch=merge_request.source_branch,
                 start_commit="origin/" + merge_request.target_branch,
+                keep_trailers=False,
             )
         return sha
 
@@ -574,6 +577,7 @@ class MergeJobOptions:
     add_tested: bool = False
     add_part_of: bool = False
     add_reviewers: bool = False
+    keep_reviewers: bool = False
     reapprove: bool = False
     approval_timeout: Optional[datetime.timedelta] = dataclasses.field(
         default_factory=lambda: datetime.timedelta(seconds=0)

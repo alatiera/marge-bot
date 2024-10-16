@@ -172,6 +172,7 @@ Here is a config file example
 ```yaml
 add-part-of: true
 add-reviewers: true
+keep-reviewers: false
 add-tested: true
 # choose one way of specifying the Auth token
 #auth-token: TOKEN
@@ -453,7 +454,8 @@ target branch into your PR branch:
 Reviewed-by: A. Reviewer <a.reviewer@example.com>
 ```
 
-All existing `Reviewed-by:` trailers on commits in the branch will be stripped. This
+All existing `Reviewed-by:` trailers on commits in the branch will be stripped,
+unless you use `--keep-reviewers` option. This
 feature requires marge to run with admin privileges due to a peculiarity of the
 GitLab API: only admin users can obtain email addresses of other users, even
 ones explicitly declared as public (strangely this limitation is particular to

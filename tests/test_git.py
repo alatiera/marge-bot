@@ -63,6 +63,7 @@ class TestRepo:
             trailer_values=["John Simon <john@invalid>"],
             branch="feature_branch",
             start_commit="origin/master_of_the_universe",
+            keep_trailers=False,
         )
 
         rewrite, parse = get_calls(mocked_run)
@@ -91,6 +92,7 @@ class TestRepo:
                 branch="feature_branch",
                 start_commit="origin/master_of_the_universe",
                 trailer_values=["John Simon <john@invalid.com>"],
+                keep_trailers=False,
             )
         except marge.git.GitError:
             pass
@@ -228,9 +230,9 @@ def mocked_stdout(stdout):
     return subprocess.CompletedProcess(["blah", "args"], 0, stdout, None)
 
 
-def _filter_test(message, trailer_name, trailer_values):
+def _filter_test(message, trailer_name, trailer_values, keep_trailers):
     script = marge.git._filter_branch_script(  # pylint: disable=protected-access
-        trailer_name, trailer_values
+        trailer_name, trailer_values, keep_trailers
     )
     result = subprocess.check_output(
         [b"sh", b"-c", script.encode("utf-8")],
@@ -241,10 +243,12 @@ def _filter_test(message, trailer_name, trailer_values):
 
 
 def test_filter():
-    assert _filter_test("Some Stuff", "Tested-by", []) == "Some Stuff\n"
-    assert _filter_test("Some Stuff\n", "Tested-by", []) == "Some Stuff\n"
+    assert _filter_test("Some Stuff", "Tested-by", [], False) == "Some Stuff\n"
+    assert _filter_test("Some Stuff\n", "Tested-by", [], False) == "Some Stuff\n"
     assert (
-        _filter_test("Some Stuff", "Tested-by", ["T. Estes <testes@example.com>"])
+        _filter_test(
+            "Some Stuff", "Tested-by", ["T. Estes <testes@example.com>"], False
+        )
         == """Some Stuff
 
 Tested-by: T. Estes <testes@example.com>
@@ -261,7 +265,7 @@ Reviewed-by: R. Viewer <rviewer@example.com>
 Signed-off-by: Stephen Offer <soffer@example.com>
 """
     with_tested_by = _filter_test(
-        test_commit_message, "Tested-by", ["T. Estes <testes@example.com>"]
+        test_commit_message, "Tested-by", ["T. Estes <testes@example.com>"], False
     )
     assert (
         with_tested_by
@@ -279,6 +283,7 @@ Tested-by: T. Estes <testes@example.com>
         with_tested_by,
         "Reviewed-by",
         ["Roger Ebert <ebert@example.com>", "John Simon <simon@example.com>"],
+        False,
     )
     assert (
         with_new_reviewed_by
@@ -293,11 +298,32 @@ Reviewed-by: Roger Ebert <ebert@example.com>
 Reviewed-by: John Simon <simon@example.com>
 """
     )
+    with_keep_reviewed_by = _filter_test(
+        with_tested_by,
+        "Reviewed-by",
+        ["Roger Ebert <ebert@example.com>", "John Simon <simon@example.com>"],
+        True,
+    )
     assert (
-        _filter_test("Test: frobnificator", "Tested-by", []) == "Test: frobnificator\n"
+        with_keep_reviewed_by
+        == """Fix: bug in BLah.
+
+Some stuff.
+Some More stuff (really? Yeah: really!)
+
+Reviewed-by: R. Viewer <rviewer@example.com>
+Signed-off-by: Stephen Offer <soffer@example.com>
+Tested-by: T. Estes <testes@example.com>
+Reviewed-by: Roger Ebert <ebert@example.com>
+Reviewed-by: John Simon <simon@example.com>
+"""
+    )
+    assert (
+        _filter_test("Test: frobnificator", "Tested-by", [], False)
+        == "Test: frobnificator\n"
     )
     assert _filter_test(
-        "Test: frobnificator", "Tested-by", ["T. Estes <testes@example.com>"]
+        "Test: frobnificator", "Tested-by", ["T. Estes <testes@example.com>"], False
     ) == (
         """Test: frobnificator
 
@@ -308,7 +334,7 @@ Tested-by: T. Estes <testes@example.com>
 
 def test_filter_fails_on_empty_commit_messages():
     with pytest.raises(subprocess.CalledProcessError) as exc_info:
-        _filter_test("", "", [])
+        _filter_test("", "", [], False)
     assert exc_info.value.output == b"ERROR: Expected a non-empty commit message"
 
 
@@ -318,6 +344,7 @@ def test_filter_fails_on_commit_messages_that_are_empty_apart_from_trailers():
             "Tested-by: T. Estes <testes@example.com>",
             "Tested-by",
             ["T. Estes <testes@example.com>"],
+            False,
         )
     assert exc_info.value.output == b"".join(
         [
@@ -327,7 +354,7 @@ def test_filter_fails_on_commit_messages_that_are_empty_apart_from_trailers():
     )
 
     with pytest.raises(subprocess.CalledProcessError) as exc_info:
-        _filter_test("", "Tested-by", ["T. Estes <testes@example.com>"])
+        _filter_test("", "Tested-by", ["T. Estes <testes@example.com>"], False)
     assert exc_info.value.output == b"ERROR: Expected a non-empty commit message"
 
 
@@ -339,6 +366,7 @@ def test_filter_ignore_first_line_trailer_in_commit_message_if_not_set():
             [
                 "John Simon <john@invalid>",
             ],
+            False,
         )
         == """Tested-by: T. Estes <testes@example.com>
 

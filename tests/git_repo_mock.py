@@ -225,10 +225,12 @@ class GitModel:
         _, _, filter_cmd, commit_range = args
         assert args == ("--force", "--msg-filter", filter_cmd, commit_range)
 
-        trailers_var, python, script_path = shlex.split(filter_cmd)
+        trailers_var, keep_trailers_var, python, script_path = shlex.split(filter_cmd)
         _, trailers_str = trailers_var.split("=")
+        _, keep_trailers_str = keep_trailers_var.split("=")
 
         assert trailers_var == f"TRAILERS={trailers_str}"
+        assert keep_trailers_var == f"KEEP_TRAILERS={keep_trailers_str}"
         assert python == "python3"
         assert script_path.endswith("marge/trailerfilter.py")
 
